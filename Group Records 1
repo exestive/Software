@@ -1,0 +1,34 @@
+We First identified what each use case and the actors involved in the booking system.
+We Then assigned each person a use case as their functionality for the project which was as follows:
+
+Actors
+Ski Instructor
+Slope Operator
+Manager
+Skier
+
+
+
+Use Cases/functionality
+Register ←- extension: charged membership fee. 
+Check slope schedule
+Check user details
+Choose booking session with an instructor
+Check for registration
+Upgrade membership
+Pay fee
+Attribute of booking
+Get list
+Add session
+Delete session
+ 
+
+Associations
+
+What we are doing
+Book session for user (anas)
+Adding new user (to register) (Jack)
+Adding session (Eric)
+Scheduling (Amir)
+Check-in  (Safa)
+Membership - register as member/select payment method(Josh) 
