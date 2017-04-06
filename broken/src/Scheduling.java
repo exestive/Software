@@ -581,6 +581,17 @@ public class Scheduling{
 			});
 			btnNewButton_12.setBounds(153, 383, 91, 41);
 			frmSchedulingPanel.getContentPane().add(btnNewButton_12);
+			
+			JButton btnMembershipUpgrade = new JButton("Membership Upgrade");
+			btnMembershipUpgrade.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					MembershipUI win = new MembershipUI(); 
+					win.setVisible(true);
+					frmSchedulingPanel.setVisible(false);
+				}
+			});
+			btnMembershipUpgrade.setBounds(140, 690, 172, 41);
+			frmSchedulingPanel.getContentPane().add(btnMembershipUpgrade);
 
 	}
 

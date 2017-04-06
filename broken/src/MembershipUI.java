@@ -6,27 +6,19 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.sql.*;
 import javax.swing.*;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import net.proteanit.sql.DbUtils;
 
-import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import javax.swing.JSeparator;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JTable;
-import javax.swing.JScrollPane;
 
 public class MembershipUI extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField surname;
-	private JTable table;
+	public static JTable table;
 
 	/**
 	 * Launch the application.
@@ -38,7 +30,7 @@ public class MembershipUI extends JFrame {
 					MembershipUI frame = new MembershipUI();
 					frame.setBounds(250, 250, 500, 700);
 					Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-					frame.setLocation(dim.width/2-frame.getSize().width/2, dim.height/2-frame.getSize().height/2);
+					frame.setLocation(dim.width/2-frame.getSize().width/2, dim.height/2-frame.getSize().height/2); // center the screen 
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -50,14 +42,15 @@ public class MembershipUI extends JFrame {
 	private JTextField surnametf;
 	private JTextField dob;
 	private JTextField email;
-	private JTextField contactnumber;
-	private Object[] rowData; 
+	private JTextField contactNumber;
+	
 	
 	/**
 	 * Create the frame.
 	 */
 	public MembershipUI() {
 		conn = sqliteConnection.dbConnector();
+		
 		setBounds(100, 100, 500, 715);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -77,8 +70,9 @@ public class MembershipUI extends JFrame {
 		JButton btnSchedulingPanel = new JButton("Return to Scheduling Panel");
 		btnSchedulingPanel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Scheduling win = new Scheduling();
+				Scheduling win = new Scheduling(); // if this button is selected create a new instance of the scheduling panel and instantiate it
 				win.frmSchedulingPanel.setVisible(true);
+				
 			}
 		});
 		btnSchedulingPanel.setBounds(252, 637, 232, 23);
@@ -93,19 +87,12 @@ public class MembershipUI extends JFrame {
 		contentPane.add(surname);
 		surname.setColumns(10);
 		
+		UserSearchController userSearch = new UserSearchController();
+		
 		JButton btnSearch = new JButton("Search");
 		btnSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try {
-					String query = "SELECT * FROM Scheduling WHERE Surname=?";
-					PreparedStatement pst = conn.prepareStatement(query);
-					pst.setString(1, surname.getText());
-					ResultSet rs=pst.executeQuery();
-					table.setModel(DbUtils.resultSetToTableModel(rs));
-					
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null, e1);
-				}
+				table = userSearch.search(table, surname); // call the userSearch controller's search function 
 			}
 			
 		});
@@ -153,21 +140,16 @@ public class MembershipUI extends JFrame {
 		dob.setColumns(10);
 		dob.setEditable(false);
 		
+		selectUserController selectUser = new selectUserController();
 		
 		JButton btnSelect = new JButton("Select");
 		btnSelect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				int row = table.getSelectedRow();
-				rowData = new Object[table.getColumnCount()];
-				for (int i = 0; i < table.getColumnCount(); i++) {
-					rowData[i] = table.getValueAt(row, i);
-				}
-				firstName.setText("" + rowData[2]);
-				surnametf.setText("" + rowData[3]);
-				dob.setText("" + rowData[4]);
+				Member member = selectUser.selectUser(table); // call the selectUserController's selectUser function
+				firstName.setText("" + member.getName());
+				surnametf.setText("" + member.getSurname());
+				dob.setText("" + member.getDOB());
 				JOptionPane.showMessageDialog(null, "Please fill in the text fields marked with an asterix and select which level of membership you wish to upgrade/downgrade to.");
-				JOptionPane.showMessageDialog(null, rowData);
-				
 			}
 		});
 		btnSelect.setBounds(389, 141, 89, 23);
@@ -186,10 +168,10 @@ public class MembershipUI extends JFrame {
 		contentPane.add(email);
 		email.setColumns(10);
 		
-		contactnumber = new JTextField();
-		contactnumber.setBounds(139, 445, 240, 20);
-		contentPane.add(contactnumber);
-		contactnumber.setColumns(10);
+		contactNumber = new JTextField();
+		contactNumber.setBounds(139, 445, 240, 20);
+		contentPane.add(contactNumber);
+		contactNumber.setColumns(10);
 		
 		JLabel lblMembershipType = new JLabel("Membership Type:");
 		lblMembershipType.setBounds(10, 479, 118, 14);
@@ -200,9 +182,18 @@ public class MembershipUI extends JFrame {
 		membershipType.setBounds(139, 476, 240, 20);
 		contentPane.add(membershipType);
 		
+		String[] paymentOptions = { "", "Visa", "Debit", "American Express" };
+		JComboBox paymentOption = new JComboBox(paymentOptions);
+		paymentOption.setBounds(139, 506, 240, 20);
+		contentPane.add(paymentOption);
+		
+		
+		amendMembershipController amend = new amendMembershipController();
 		JButton btnAmendMembership = new JButton("Amend Membership");
 		btnAmendMembership.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				
+				Member member = selectUser.selectUser(table);
 				
 				String errorMessage = "The following things need to be amended before we can complete this task:\n\n";
 				if (firstName.getText().trim().isEmpty()) {
@@ -215,26 +206,47 @@ public class MembershipUI extends JFrame {
 					errorMessage += "Enter your email\n";
 					violation += 1;
 				}
-				if (contactnumber.getText().trim().isEmpty())
+				if (contactNumber.getText().trim().isEmpty())
 				{
 					errorMessage += "Enter your Contact Number\n";
 					violation += 1;
 				}
-				
 				if (membershipType.getSelectedItem() == "") {
 					errorMessage += "You did not select a membership option\n";
 					violation += 1;
 				}
-				
-				if (membershipType.getSelectedItem().toString().equals(rowData[5].toString()))  {
-					errorMessage += "You are already a registered member and have chosen registered as your upgrade option\n";
+				if (membershipType.getSelectedItem().equals(member.getM_Status().toString())) {
+					errorMessage += "You are already a member with this membership type. Please review your option.\n";
 					violation += 1;
 				}
-				// else if (membershipType.getSelectedItem().toString().equals("Registered") && rowData[5].toString().equals("Member"))
-					
+				if (membershipType.getSelectedItem().equals("Loyalty Membership") && paymentOption.getSelectedItem().equals("")) {
+					errorMessage += "You did not select a payment option\n";
+					violation += 1;
+				}
+				
+				if (membershipType.getSelectedItem().equals("Loyalty Membership") && Integer.parseInt(member.getSessionID()) < 10) {
+					errorMessage += "You have not attended enough sessions to qualify for loyalty membership. Please attend atleast 10 sessions to qualify.\n";
+					violation += 1;
+				}
+				
 				if (violation > 0) {
+					// if any of the above violations were met, the violation variable would increment and this if branch would trigger
 					JOptionPane.showMessageDialog(null, errorMessage);
 					return;
+				}
+				if (membershipType.getSelectedItem().equals("Registered") && (member.getM_Status().equals("Member") || member.getM_Status().equals("Loyalty"))) {
+					amend.amendMembership(member, membershipType.getSelectedItem().toString(), email.getText(), contactNumber.getText()); // call amendMembership function of the amend controller and upgrade/downgrade to registered
+					JOptionPane.showMessageDialog(null, "Your membership has been updated!");
+				}
+				
+				if (membershipType.getSelectedItem().equals("Basic Membership") && (member.getM_Status().equals("Registered") || member.getM_Status().equals("Loyalty"))) {
+					amend.amendMembership(member, membershipType.getSelectedItem().toString(), email.getText(), contactNumber.getText());// call amendMembership function of the amend controller and upgrade/downgrade to basic membership
+					JOptionPane.showMessageDialog(null, "Your membership has been updated!");
+				}
+				
+				if (membershipType.getSelectedItem().equals("Loyalty Membership") && (member.getM_Status().equals("Registered") || member.getM_Status().equals("Member"))) {
+					amend.amendMembership(member, membershipType.getSelectedItem().toString(), email.getText(), contactNumber.getText()); // call amendMembership function of the amend controller and upgrade/downgrade to loyalty membership 
+					JOptionPane.showMessageDialog(null, "Your membership has been updated!");
 				}
 				
 				
@@ -243,11 +255,6 @@ public class MembershipUI extends JFrame {
 		});
 		btnAmendMembership.setBounds(163, 550, 166, 23);
 		contentPane.add(btnAmendMembership);
-		
-		String[] paymentOptions = { "", "Visa", "Debit", "American Express" };
-		JComboBox paymentOption = new JComboBox(paymentOptions);
-		paymentOption.setBounds(139, 506, 240, 20);
-		contentPane.add(paymentOption);
 		
 		JLabel lblNewLabel_2 = new JLabel("Payment Option:");
 		lblNewLabel_2.setBounds(20, 509, 98, 14);

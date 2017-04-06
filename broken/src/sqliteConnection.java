@@ -6,7 +6,7 @@ public class sqliteConnection {
 	{
 		try{
 			Class.forName("org.sqlite.JDBC");
-			Connection conn=DriverManager.getConnection("jdbc:sqlite:C:\\Users\\Josh\\workspace\\Scheduling2\\Booking2.sqlite");
+			Connection conn=DriverManager.getConnection("jdbc:sqlite:C:\\Users\\Josh\\workspace3\\broken\\Booking2.sqlite");
 			//JOptionPane.showMessageDialog(null, "Connection Successful");
 			return conn;
 		}catch(Exception e)
